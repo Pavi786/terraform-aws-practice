@@ -277,8 +277,8 @@ resource "aws_eks_node_group" "main" {
     aws_subnet.private_2.id
   ]
 
-  capacity_type  = "SPOT"
-  instance_types = ["t3.medium"]
+  capacity_type  = "ON_DEMAND"
+  instance_types = ["t3.small"]
 
   scaling_config {
     desired_size = 2
