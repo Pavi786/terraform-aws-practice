@@ -538,21 +538,22 @@ This tells AWS:
 
 ---
 
-### 9.1 Spot instances
+### 9.1 Capacity Type and Instance Sizing
 ```hcl
-capacity_type  = "SPOT"
-instance_types = ["t3.medium"]
+capacity_type  = "ON_DEMAND"
+instance_types = ["t3.small"]
 ```
 
-What is Spot? Imagine AWS has spare EC2 capacity. It offers that capacity at a discount, but AWS can interrupt your instance when it needs the capacity back.
+We configure **`ON_DEMAND`** instances with **`t3.small`** for maximum reliability during labs:
 
-| Feature | On-Demand | Spot |
+| Feature | On-Demand (`t3.small`) | Spot (`t3.medium`) |
 | :--- | :--- | :--- |
-| **Pricing** | Normal EC2 pricing | Discounted spare capacity (~70% off) |
-| **Availability** | Predictable | Can be interrupted |
-| **Best For** | Stable learning labs | Cost optimisation & fault-tolerant apps |
+| **Pricing** | Ultra low-cost (~$0.02/hr) | Spare discounted capacity (~70% off) |
+| **Availability** | 100% predictable, never interrupted | Can be reclaimed by AWS anytime |
+| **Account Compatibility** | Works on all accounts & Free Tier without conflicts | Often restricted on new / Free-Tier accounts |
+| **Best For** | Stable learning labs & certifications | Production batch jobs & fault-tolerant apps |
 
-* **`t3.medium`** = 2 vCPUs, 4 GiB RAM.
+* **`t3.small`** = 2 vCPUs, 2 GiB RAM, up to 11 Pods (ideal sweet-spot for Kubernetes CNI + system pods without memory overhead).
 
 ---
 
@@ -661,8 +662,8 @@ public_access_cidrs = ["YOUR_PUBLIC_IP/32"]
 ### C. Kubernetes version
 Choose a Kubernetes version currently supported by EKS in Mumbai.
 
-### D. Spot instances
-For your first lab, consider `capacity_type = "ON_DEMAND"`. Once your cluster works, experiment with Spot instances.
+### D. Capacity Type: On-Demand vs Spot
+We use `capacity_type = "ON_DEMAND"` with `t3.small` to prevent `InvalidParameterCombination - The specified instance type is not eligible for Free Tier` errors on accounts with Free-Tier safeguards. Once your cluster is fully operational, you can explore Spot instances for non-critical workloads.
 
 ### E. NAT Gateway availability
 You created one NAT Gateway in AZ 1a, and both private subnets use it. This saves money, but if AZ 1a fails, private-subnet outbound access can be affected. For production, deploy one NAT Gateway per AZ.

@@ -607,8 +607,8 @@ resource "aws_eks_node_group" "main" {
     aws_subnet.private_2.id
   ]
 
-  capacity_type  = "SPOT"
-  instance_types = ["t3.medium"]
+  capacity_type  = "ON_DEMAND"
+  instance_types = ["t3.small"]
 
   scaling_config {
     desired_size = 2
@@ -633,8 +633,8 @@ resource "aws_eks_node_group" "main" {
 ```
 
 * **`subnet_ids`**: Worker nodes are placed in private subnets for security and high availability.
-* **`capacity_type = "SPOT"`**: Uses spare EC2 capacity at ~70% discount.
-* **`instance_types = ["t3.medium"]`**: 2 vCPUs, 4 GiB RAM.
+* **`capacity_type = "ON_DEMAND"`**: Runs predictable, stable compute without Spot launch failures on Free Tier / new accounts.
+* **`instance_types = ["t3.small"]`**: 2 vCPUs, 2 GiB RAM, up to 11 Pods (~$0.02/hr, perfect balance of reliability and cost).
 * **`scaling_config`**: Initial desired 2, minimum 1, maximum 3.
 * **`update_config { max_unavailable = 1 }`**: During updates, at most one node is taken down at a time.
 * **`depends_on`**: Ensures all 3 node IAM policies are attached before nodes launch.
@@ -953,8 +953,8 @@ output "instant_k8s_test_command" {
 | Current Configuration | What You Should Understand |
 | :--- | :--- |
 | `version = "1.31"` | Check current EKS version support in your region before deploying. |
-| `capacity_type = "SPOT"` | Instances can be interrupted by AWS when capacity is needed back. |
-| `t3.medium` | Check memory and CPU requirements for your planned workloads. |
+| `capacity_type = "ON_DEMAND"` | Ensures rock-solid stability and avoids Free-Tier Spot launch restrictions (`InvalidParameterCombination`). |
+| `t3.small` | 2 vCPUs, 2 GiB RAM (up to 11 pods) — low cost (~$0.02/hr) with sufficient memory for system daemons. |
 | **One NAT Gateway** | Single-AZ dependency; production setups should deploy one per AZ. |
 | `AdministratorAccess` | Excessively broad management permissions; use least-privilege policies in production. |
 | `SSH 0.0.0.0/0` | Allows connection attempts from anywhere; restrict to trusted IP or use AWS SSM. |
