@@ -1,0 +1,22 @@
+# Local .terraform directories (huge provider binaries)
+**/.terraform/
+**/.terraform.lock.hcl.tmp
+
+# Terraform state files (may contain sensitive data/passwords)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.tfstate.lock.info
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Sensitive SSH Private Keys
+*.pem
+*.key
+*.id_rsa
+
+# OS generated files
+.DS_Store
+Thumbs.db
