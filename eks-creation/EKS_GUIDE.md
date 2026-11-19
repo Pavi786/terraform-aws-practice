@@ -668,6 +668,13 @@ We use `capacity_type = "ON_DEMAND"` with `t3.small` to prevent `InvalidParamete
 ### E. NAT Gateway availability
 You created one NAT Gateway in AZ 1a, and both private subnets use it. This saves money, but if AZ 1a fails, private-subnet outbound access can be affected. For production, deploy one NAT Gateway per AZ.
 
+### F. Private API Access & Port 443 Inbound Rule
+When `endpoint_private_access = true` is enabled, instances inside your VPC (like the Ubuntu Management EC2) query the EKS API server directly through private ENIs (e.g. `10.0.2.192:443`). Without an inbound rule on the EKS cluster security group, traffic is dropped with:
+```text
+dial tcp 10.0.2.192:443: i/o timeout
+```
+We resolve this in `eks.tf` by adding `aws_security_group_rule.cluster_inbound_from_management`, granting inbound TCP port 443 from `aws_security_group.management_sg.id` to `aws_eks_cluster.main.vpc_config[0].cluster_security_group_id`.
+
 ---
 
 ## 13. Commands to execute your project

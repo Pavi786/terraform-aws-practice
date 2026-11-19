@@ -403,6 +403,17 @@ resource "aws_security_group" "management_sg" {
   }
 }
 
+# Allow Management EC2 to communicate with the EKS Control Plane API on Port 443
+resource "aws_security_group_rule" "cluster_inbound_from_management" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.management_sg.id
+  security_group_id        = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  description              = "Allow management EC2 to communicate with EKS API server"
+}
+
 # ==============================================================================
 # 11. UBUNTU MANAGEMENT EC2 INSTANCE (Automates AWS CLI + kubectl + kubeconfig)
 # ==============================================================================

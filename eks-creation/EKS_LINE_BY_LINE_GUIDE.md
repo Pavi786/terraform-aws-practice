@@ -793,6 +793,26 @@ resource "aws_security_group" "management_sg" {
 * **Ingress:** Allows TCP Port 22 (SSH) from `0.0.0.0/0`.
 * **Egress:** Allows all outbound traffic so the instance can download AWS CLI, `kubectl`, and Ubuntu packages.
 
+### 10.1 EKS Control Plane Ingress Rule (Port 443)
+
+```hcl
+resource "aws_security_group_rule" "cluster_inbound_from_management" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.management_sg.id
+  security_group_id        = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  description              = "Allow management EC2 to communicate with EKS API server"
+}
+```
+
+* **Why is this rule required?**
+  With `endpoint_private_access = true`, any EC2 inside the VPC resolves the EKS API endpoint to the private ENI IP address (e.g. `10.0.2.192`). 
+* **The `i/o timeout` Issue:** Without this rule, the automatic EKS cluster security group silently blocks incoming traffic on port 443 from the management server, causing:
+  `Get "https://...eks.amazonaws.com/api?timeout=32s": dial tcp 10.0.2.192:443: i/o timeout`
+* **The Fix:** Attaching this rule explicitly opens port 443 for `aws_security_group.management_sg.id`, allowing `kubectl get nodes` to work immediately.
+
 ---
 
 ## Section 11. Ubuntu Management EC2 Instance
