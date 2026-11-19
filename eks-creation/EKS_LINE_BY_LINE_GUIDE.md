@@ -639,6 +639,28 @@ resource "aws_eks_node_group" "main" {
 * **`update_config { max_unavailable = 1 }`**: During updates, at most one node is taken down at a time.
 * **`depends_on`**: Ensures all 3 node IAM policies are attached before nodes launch.
 
+### 6.1 AWS EBS CSI Driver Add-on (Persistent Storage for 100 GB PVCs)
+
+```hcl
+resource "aws_iam_role_policy_attachment" "nodes_ebs_csi_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.nodes.name
+}
+
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "aws-ebs-csi-driver"
+
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_iam_role_policy_attachment.nodes_ebs_csi_policy
+  ]
+}
+```
+
+* **`AmazonEBSCSIDriverPolicy`**: Gives worker nodes permission to call AWS EC2 APIs (`ec2:CreateVolume`, `ec2:AttachVolume`, `ec2:DeleteVolume`, `ec2:ModifyVolume`).
+* **`aws_eks_addon.ebs_csi`**: Installs the Container Storage Interface driver so Kubernetes can dynamically provision AWS EBS volumes when a PVC requests storage (such as 100 GiB).
+
 ---
 
 ## Section 7. IAM Role and Instance Profile for Ubuntu Management EC2

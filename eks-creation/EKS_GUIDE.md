@@ -1,4 +1,4 @@
-# 🚀 AWS EKS Kubernetes Cluster with Terraform (Mumbai: `ap-south-1`)
+dcker # 🚀 AWS EKS Kubernetes Cluster with Terraform (Mumbai: `ap-south-1`)
 
 > **Buddy! 😊 This is a complete Terraform configuration for creating an AWS EKS Kubernetes cluster in Mumbai (`ap-south-1`).**  
 > *Let's understand it like a real-world company setup. Below is what each section does, why we need it, and how the resources connect.*
@@ -714,7 +714,36 @@ terraform destroy
 
 ---
 
-## 14. Test your understanding
+## 14. Persistent Storage (100 GB PVC with AWS EBS CSI Driver)
+
+### How Persistent Volumes Work in EKS:
+Kubernetes Pod storage is temporary by default. To attach a 100 GB persistent SSD volume:
+1. **Add EBS CSI Policy:** Attach `arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy` to the worker node IAM role (`aws_iam_role.nodes`).
+2. **Enable Add-on:** Deploy `aws_eks_addon.ebs_csi` (`aws-ebs-csi-driver`).
+3. **StorageClass (`gp3`):** Configures `WaitForFirstConsumer` so the EBS volume is created in the exact same Availability Zone (`ap-south-1a` or `ap-south-1b`) as the scheduled Pod.
+4. **PersistentVolumeClaim (`100Gi`):** Dynamically requests 100 GB of `gp3` EBS storage from AWS.
+
+### Deploying 100 GB Storage:
+Run this on your Ubuntu Management terminal:
+```bash
+kubectl apply -f storage-100gb.yaml
+```
+
+Verify storage creation:
+```bash
+# 1. Check StorageClass
+kubectl get sc
+
+# 2. Check 100 GB PVC status (Bound)
+kubectl get pvc
+
+# 3. Verify the 100 GB disk mounted inside the Pod
+kubectl exec -it storage-test-app -- df -h /data
+```
+
+---
+
+## 15. Test your understanding
 
 <details>
 <summary><b>1. Which resource creates the Kubernetes control plane?</b> (Click to check answer)</summary>

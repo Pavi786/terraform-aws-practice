@@ -264,6 +264,11 @@ resource "aws_iam_role_policy_attachment" "nodes_ecr_policy" {
   role       = aws_iam_role.nodes.name
 }
 
+resource "aws_iam_role_policy_attachment" "nodes_ebs_csi_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.nodes.name
+}
+
 # ==============================================================================
 # 6. EKS MANAGED NODE GROUP (The Worker Nodes where Pods run)
 # ==============================================================================
@@ -299,6 +304,19 @@ resource "aws_eks_node_group" "main" {
   tags = {
     Name = "${local.cluster_name}-worker-node"
   }
+}
+
+# ==============================================================================
+# 6.1 AWS EBS CSI DRIVER ADDON (Enables 100 GB Persistent Storage PVCs)
+# ==============================================================================
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "aws-ebs-csi-driver"
+
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_iam_role_policy_attachment.nodes_ebs_csi_policy
+  ]
 }
 
 # ==============================================================================

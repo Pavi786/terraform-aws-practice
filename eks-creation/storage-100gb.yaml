@@ -1,0 +1,51 @@
+# ==============================================================================
+# 1. AWS EBS GP3 STORAGE CLASS (Dynamic Multi-AZ volume creation)
+# ==============================================================================
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-gp3-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  fsType: ext4
+
+---
+# ==============================================================================
+# 2. 100 GB PERSISTENT VOLUME CLAIM (PVC)
+# ==============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-storage-100gb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ebs-gp3-sc
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+# ==============================================================================
+# 3. TEST POD (Mounts the 100 GB EBS Volume at /data)
+# ==============================================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-test-app
+spec:
+  containers:
+    - name: nginx-storage-test
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - mountPath: "/data"
+          name: persistent-volume
+  volumes:
+    - name: persistent-volume
+      persistentVolumeClaim:
+        claimName: app-storage-100gb
